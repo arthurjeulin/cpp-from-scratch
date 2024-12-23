@@ -169,3 +169,17 @@ cannot do
 auto var;
 var = 12;
 ```
+## C++ From Scratch: Conditional Statements
+```cpp
+#include <iostream>
+int main()
+{
+  int a = 5;
+  int b = 10;
+  if(a < b)
+  {
+    std::cout << " a is less than b!\n";
+  }
+  return 0;
+}
+```
