@@ -1,7 +1,6 @@
 # C++ From Scratch
-## C++ From Scratch What is cpp ?
-cpp is a compile language that is statically typed.  
-
+## Introduction: What is cpp ?
+cpp is a compile language that is statically typed.
 Compile language =>means can't execute our code directly (not like interpreted language like python).
 
 The compilate translate the source code into a machine language an executable.
@@ -44,7 +43,7 @@ we can get the return value with
 ```bash
 echo $?
 ```
-## C++ From Scratch: Printing
+## Introduction: Printing
 
 cout = character oupout
 ```bash
@@ -92,7 +91,7 @@ g++ print.cpp -o print
 ./print
 ```
 To keep in mind for the future, std is a namespace and :: is scope resolution
-## C++ From Scratch: Variables
+## Introduction: Variables
 
 Variable allows use to give a value a particular name
 ```bash
@@ -169,17 +168,87 @@ cannot do
 auto var;
 var = 12;
 ```
-## C++ From Scratch: Conditional Statements
+## Introduction: Conditional Statements
 ```cpp
 #include <iostream>
 int main()
 {
-  int a = 5;
+  int a = 11;
   int b = 10;
   if(a < b)
   {
     std::cout << " a is less than b!\n";
   }
+  else if(a == b)
+  {
+    std::cout << "a is equal to be!\n";
+  }
+  else
+  {
+    std::cout << "a is great than b!\n";
+  }
   return 0;
 }
+```
+
+## Introduction: std::array
+std::array is a container that encapsulates fixed size arrays.
+- This container is an aggregate type with the same semantics as a struct holding a C-style array T[N] as its only non-static data member.  
+- Unlike a C-style array, it doesn't decay to T* automatically. As an aggregate type, it can be initialized with aggregate-initialization given at most N initializers that are convertible to T: s
+```cpp
+std::array<int, 3> a = {1, 2, 3};
+```
+### Qu'est-ce qu'un type agrégé ?
+
+Un type agrégé en C++ est une classe ou une structure qui satisfait certaines conditions, ce qui permet une initialisation directe de ses membres avec une liste d'initialisation (initialisation d'agrégat).
+Voici les conditions pour qu'un type soit considéré comme agrégé :
+- Il n'a pas de constructeur défini par l'utilisateur.
+- Tous ses membres sont publics.
+- Il ne possède pas de base de classe.
+- Il n'a pas de fonctions membres virtuelles.
+
+Cela signifie qu'un type agrégé se comporte comme un conteneur simple, où les valeurs peuvent être directement affectées aux membres lors de l'initialisation.
+
+Exemple d'un type agrégé:
+```cpp
+struct Point {
+    int x;
+    int y;
+};
+
+// Initialisation d'agrégat
+Point p = {10, 20}; // Initialise p.x = 10 et p.y = 20
+```
+#### La sémantique d'une struct contenant un tableau de type C T[N]
+Lorsqu'une struct contient un tableau de style C comme membre (par exemple int arr[5]), le tableau est directement inclus dans l'objet struct et agit comme un simple tableau de type C. Voici ce que cela signifie :
+- Taille fixe :
+    - La taille du tableau est fixée à la compilation et fait partie intégrante de la struct.
+    - Par exemple :
+```cpp
+struct MyStruct {
+    int arr[5];
+};
+
+MyStruct s;
+s.arr[0] = 1; // Accès direct aux éléments
+```
+- Décalage mémoire :
+    - Le tableau est directement alloué en mémoire comme partie de l'objet struct.
+    - Il ne s'agit pas d'un pointeur, mais d'un tableau réel, ce qui signifie que les éléments du tableau sont contigus avec les autres membres de la struct en mémoire.
+- Pas de conversion automatique vers un pointeur :
+    - Contrairement à un tableau isolé (comme int arr[5];), un tableau dans une struct ne peut pas être implicitement converti en un pointeur (int*), sauf si vous accédez explicitement à ses éléments.
+- Limites :
+  - Un tableau de type C a des limites rigides : il ne peut pas être redimensionné dynamiquement, et sa taille est fixe au moment de la compilation.
+
+other example:
+```cpp
+struct MyStruct {
+    int arr[3]; // Tableau fixe
+    float value;
+};
+
+MyStruct s = {{1, 2, 3}, 4.5}; // Initialisation de tous les membres
+
+// Accès aux éléments du tableau
+s.arr[0] = 10;
 ```
