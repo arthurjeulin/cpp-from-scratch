@@ -252,3 +252,25 @@ MyStruct s = {{1, 2, 3}, 4.5}; // Initialisation de tous les membres
 // Accès aux éléments du tableau
 s.arr[0] = 10;
 ```
+#### Introduction: For Loops
+Introduction to C-Style for loop and Range-based for loop (since C++11).
+What does a for loop:
+Iterate a statement (piece of code) over a certain number of times. We can specify the number of iteration using C-Style loop or iterate over a container with Range-based loop
+```bash
+g++ introduction/for.cpp -o build/for
+./build/for
+```
+#### Introduction: While Loops
+
+We don't know all the time how many iteration we need to do. Continue to run some piece of code until a condition happens.
+while loop: 
+while(condition) statement
+Executes a statement repeatedly, until the value of condition becomes false.
+
+do while loop: 
+do statement while (condition)
+Executes a statement repeatedly, until the value of expresisn becomes false.
+```bash
+g++ introduction/while.cpp -o build/while
+./build/while
+```
