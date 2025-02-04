@@ -287,3 +287,11 @@ Compiler
 g++ introduction/references.cpp -o build/references
 ./build/references
 ```
+
+### Pass By References
+
+Compiler
+```bash
+g++ introduction/pass_by_references.cpp -o build/pass_by_references &&
+./build/pass_by_references
+```
