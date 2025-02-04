@@ -274,3 +274,16 @@ Executes a statement repeatedly, until the value of expresisn becomes false.
 g++ introduction/while.cpp -o build/while
 ./build/while
 ```
+
+### References
+Prevent a copy to happend.
+- fonctional reason in the case of a lock
+- performance reason, copying a integer is cheap but copying a vector of 10'000'000 integer is going to be expensive.
+One of the ways to avoid copying inside cpp is using references.
+
+Declares a named variable as a reference, that is, an alias to an already-existing object or function. 
+Compiler
+```bash
+g++ introduction/references.cpp -o build/references
+./build/references
+```
