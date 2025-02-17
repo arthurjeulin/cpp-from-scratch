@@ -64,6 +64,12 @@ C’est un entier représentant le nombre total d’arguments passés en ligne d
 - argv (Argument Vector) :
 C’est un tableau de pointeurs (char* argv[]), où chaque élément est un argument sous forme de chaîne (char*).
 
+The variables are named argc (argument count) and argv (argument vector) by convention, but they can be given any valid identifier:
+```cpp
+int main(int num_args, char** arg_strings)
+````
+is equally valid.
+
 Structure de argv :
 - argv[0] : Contient le chemin ou le nom de l’exécutable.
 - argv[1], argv[2], … : Contiennent les arguments passés par l’utilisateur.
