@@ -41,3 +41,11 @@ FloatInt value;
 value.f = 3.14f;
 std::cout << "Bits de 3.14 : " << std::hex << value.i << "\n";
 ```
+
+### Class
+- the main difference between a class and a struct is how to access members of the struct / class by default.
+- access specifiers for the class
+  - public
+  - private
+  - protected
+- By default the access spcifier for a class is private.
