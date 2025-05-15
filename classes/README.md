@@ -44,8 +44,14 @@ std::cout << "Bits de 3.14 : " << std::hex << value.i << "\n";
 
 ### Class
 - the main difference between a class and a struct is how to access members of the struct / class by default.
-- access specifiers for the class
+- access specifiers for the class:
   - public
   - private
   - protected
 - By default the access spcifier for a class is private.
+
+### Constructors and member initialize lists
+- Constructors are non-static member functions declared with a special syntax, they are used to initialize objects of their class type.
+
+### Desctructors
+- A desctructor is a special member function that is called when the lifetime of an object ends. The purpose of the desctructor is to free the resouces that the object may have acquired during its lifetime.
