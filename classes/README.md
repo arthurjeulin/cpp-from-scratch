@@ -48,10 +48,27 @@ std::cout << "Bits de 3.14 : " << std::hex << value.i << "\n";
   - public
   - private
   - protected
-- By default the access spcifier for a class is private.
+- By default the access specifier for a class is private.
 
 ### Constructors and member initialize lists
 - Constructors are non-static member functions declared with a special syntax, they are used to initialize objects of their class type.
+To remember: as soon as we are creating the constructor the default constructor by the compiler is disable. To enable the compiler's default constructor we need to:
+```cpp
+Point() = default;
+```
 
 ### Desctructors
 - A desctructor is a special member function that is called when the lifetime of an object ends. The purpose of the desctructor is to free the resouces that the object may have acquired during its lifetime.
+### Copy Constructor
+A copy constructor is a constructor which can be called with an argument of the same class type ad copies the content of the argument without mutating the argument.
+- const flags means "READ ONLY"
+- argument has to be const to guarentee the copy object won't be changed.
+```cpp
+Point(const Point& p);
+```
+- The compiler will also generate a default copy constructor.
+- Sometimes we don't want to allow any copy
+```cpp
+Point(const Point& p) = delete;
+```
+example std::unique_ptr<T>, we don't want to copy a unique_ptr;
