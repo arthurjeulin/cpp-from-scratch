@@ -181,3 +181,33 @@ int main() {
     return 0;
 }
 ```
+
+### Raw pointer and Smart pointer
+"sémantique" signifie: le sens ou le comportement associé à un élément de code.
+La sémantique d’un code, c’est ce qu’il veut dire et comment il se comporte.
+1. Raw pointers (int*)
+```cpp
+int* ptr_integer = new int;
+int* ptr_integer_array = new int[10];
+```
+Tu utilises le même type int* dans les deux cas :
+- new int alloue un objet unique de type int.
+- new int[10] alloue un tableau de 10 éléments de type int.
+Mais dans les deux cas, tu reçois un int*, car en C++ les tableaux sont vus comme un pointeur vers leur premier élément. Le type int* est aveugle : il ne sait pas si c’est un seul int ou un tableau.
+
+C’est justement une source classique de bugs quand on oublie d’utiliser delete[] pour libérer un tableau :
+```cpp
+delete ptr_integer;        // OK
+delete ptr_integer_array;  // Erreur : il faut utiliser delete[]
+```
+2. std::unique_ptr
+C++ a corrigé cette ambigüité avec std::unique_ptr en distinguant clairement les deux usages:
+```cpp
+std::unique_ptr<int> ptr = std::make_unique<int>();       // pour un seul int
+std::unique_ptr<int[]> ptr_array = std::make_unique<int[]>(10); // pour un tableau de 10 int
+```
+- std::unique_ptr<int> : version classique, appelle delete sur le pointeur.
+- std::unique_ptr<int[]> : version spécialisée, appelle delete[] automatiquement.
+Cela permet :
+- Une sémantique explicite (tu sais ce que tu gères).
+- Une libération correcte (delete vs delete[]) sans risque d’erreur.
