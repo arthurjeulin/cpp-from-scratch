@@ -211,3 +211,133 @@ std::unique_ptr<int[]> ptr_array = std::make_unique<int[]>(10); // pour un table
 Cela permet :
 - Une sémantique explicite (tu sais ce que tu gères).
 - Une libération correcte (delete vs delete[]) sans risque d’erreur.
+
+# Deep dive into pointer and memory
+## Difference entre string et const char*
+```cpp
+// Ici pas d'allocation dynamique
+const char* name = "Arthur";
+```
+- "Arthur" est une string literal, c’est-à-dire une chaîne de caractères constante stockée dans la mémoire du programme (segment .rodata => Read-Only Data ni stack ni heap).
+- "Arthur" est une string literal stockée en mémoire statique (au moment du chargement du binaire).
+- name est une variable locale (sur la stack) qui pointe vers la chaîne "Arthur".
+
+- "Arthur" est un string literal ⇒ de type const char[7]
+- Il se convertit implicitement en const char*
+- C’est une rvalue (valeur temporaire utilisée dans une expression)
+
+| Élément    | Type            | Catégorie de valeur |
+| ---------- | --------------- | ------------------- |
+| `"Arthur"` | `const char[7]` | rvalue              |
+| `name`     | `const char*`   | lvalue              |
+
+Le pointeur name pointe simplement vers cette zone mémoire en lecture seule.
+Une allocation est faite, mais par le compilateur, au moment de la compilation (pas à l'exécution).
+
+Elle est automatiquement gérée par le système → tu n’as pas à la libérer.
+
+"Arthur" : alloué dans .rodata → pas de delete
+const char* : pointeur vers chaîne C
+std::string : objet avec gestion mémoire automatique
+"Arthur" : rvalue de type const char[7]
+
+ Différence entre const char* et std::string comme argument de fonction
+```cpp
+void f1(const char* txt);
+void f2(const std::string& txt);
+```
+| Critère              | `const char*`                                       | `const std::string&`                       |
+| -------------------- | --------------------------------------------------- | ------------------------------------------ |
+| Type                 | Pointeur vers `char`                                | Référence constante vers un objet          |
+| Sécurité             | Moins sûre (attention au `nullptr`, `strlen`, etc.) | Plus sûre                                  |
+| Fonctions            | Nécessite `<cstring>`                               | `.size()`, `.find()`, etc. disponibles     |
+| Conversion implicite | Oui depuis string literal                           | Oui aussi (`"Arthur"` → string temporaire) |
+| Performance          | Légèrement plus rapide (pas d’objet)                | Négligeable en pratique                    |
+
+- sizeof(name_c) → juste la taille du pointeur (pas de la chaîne)
+- sizeof(name_cpp) → taille de l'objet std::string lui-même (pas le buffer qu’il alloue dynamiquement sur le heap)
+
+Comparaison: 
+```cpp 
+const char* name_c = "Arthur";
+const std::string name_cpp = "Arthur";
+```
+1. const char* name_c = "Arthur";
+En mémoire :
+- "Arthur" est un string literal → stocké dans le segment .rodata (données en lecture seule).
+- name_c est une variable sur la stack qui contient un pointeur vers cette chaîne
+Illutration en mémoire
+```bash
+.rodata :
+0x1000 → 'A' 'r' 't' 'h' 'u' 'r' '\0'
+
+Stack :
+name_c → 0x1000
+```
+address dans le segment .rodata 0x1000 
+2. const std::string name_cpp = "Arthur";
+En mémoire :
+- "Arthur" est copié dans un objet std::string sur la stack.
+- Ce std::string contient un pointeur vers un buffer dynamique alloué sur le heap (dans la plupart des implémentations).
+- Il gère sa propre mémoire (via un destructeur).
+Illustration mémoire (approximatif) :
+```bash
+.rodata :
+0x1000 → 'A' 'r' 't' 'h' 'u' 'r' '\0'
+Heap :
+0x2000 → 'A' 'r' 't' 'h' 'u' 'r' '\0'   ← copie privée faite par le constructeur std::string
+Stack :
+name_cpp → structure std::string contenant le pointeur vers 0x2000, la taille, la capacité, etc.
+```
+. Qu’est-ce que le segment .rodata ?
+- .rodata = Read-Only Data
+- C’est un segment mémoire du binaire contenant les données constantes (littéraux de chaînes, constantes globales const, etc.)
+- Il est généralement marqué en lecture seule par le système d’exploitation (protection mémoire).
+
+Contenu typique :
+- "Arthur" (chaîne constante)
+- const double PI = 3.14;
+- static const char* messages[] = {...}
+
+C++ Compilation steps
+- Pre-Processor
+- Compiler -> assembly code
+- Assembler -> Object file.o
+- Linker (libraries + .o) Executable file
+
+Voir le contenue de .rodata
+```bash
+readelf -x .rodata mon_programme
+```
+### sizeof()
+sizeof() retourne une taillle en bytes
+- sizeof(char) = 1 (1 byte = 8 bits)
+- sizeof(int) = 4 (4 byte = 32 bits)
+- sizeof(double) = 8
+```cpp
+const char* name_c = "Arthur";
+std::cout << sizeof(name_c);  // → 8
+```
+- name_c est de type const char*
+- C’est un pointeur
+- Sur une architecture 64 bits (x86_64), un pointeur occupe 8 octets = 64 bits
+| Architecture | Taille d’un `char*` |
+| ------------ | ------------------- |
+| 32 bits      | 4 bytes (32 bits)   |
+| 64 bits      | 8 bytes (64 bits)   |
+### Important: sizeof(pointer) in c++ 
+Tous les pointeurs ont la même taille, quel que soit leur type pointé, sur une même architecture.
+```bash
+char*       → sizeof(char*)       = 8 (sur 64 bits)
+int*        → sizeof(int*)        = 8
+double*     → sizeof(double*)     = 8
+void*       → sizeof(void*)       = 8
+char**      → sizeof(char**)      = 8
+int (*func_ptr)(double) → sizeof(...) = 8
+```
+Exception : std::function ou std::shared_ptr
+Ce ne sont pas de vrais pointeurs → ce sont des objets qui encapsulent un pointeur et d'autres informations (ex: compteur de références).
+```cpp
+sizeof(std::shared_ptr<int>)  // souvent 16 ou plus
+sizeof(std::function<void()>) // dépend de l’implémentation
+```
