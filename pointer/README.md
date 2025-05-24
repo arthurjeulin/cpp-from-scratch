@@ -341,3 +341,147 @@ Ce ne sont pas de vrais pointeurs → ce sont des objets qui encapsulent un poin
 sizeof(std::shared_ptr<int>)  // souvent 16 ou plus
 sizeof(std::function<void()>) // dépend de l’implémentation
 ```
+## String Literals
+En C++, un string literal (ou littéral de chaîne de caractères) est une valeur constante de type chaîne de caractères, écrite directement dans le code source entre guillemets.
+### Definition
+Un string literal est une constante de type const char[] qui représente une séquence de caractères terminée par \0 (nul terminator), connue à la compilation.
+### Exemple
+```cpp
+"Arthur"        // string literal
+"Hello\nWorld"  // string literal avec échappement
+""              // string literal vide
+```
+C’est automatiquement de type :
+```cpp
+const char[7]   // pour "Arthur" → 'A' 'r' 't' 'h' 'u' 'r' '\0'
+```
+### Caractéristiques
+| Caractéristique      | Détail                             |
+| -------------------- | ---------------------------------- |
+| Type                 | `const char[N]`                    |
+| Terminée par         | `\0` (null character)              |
+| Stockée dans         | `.rodata` (lecture seule, binaire) |
+| Non modifiable       | ✅ (`const`)                        |
+| Conversion implicite | Vers `const char*`                 |
+
+```cpp
+const char* name = "Arthur";
+```
+- "Arthur" : string literal (stocké dans .rodata)
+- name : pointeur vers cette chaîne
+
+Il existe aussi d’autres types de string literals :
+| Syntaxe    | Type                      | Exemple            |
+| ---------- | ------------------------- | ------------------ |
+| `"..."`    | `const char[]`            | `"abc"`            |
+| `L"..."`   | `const wchar_t[]`         | `L"abc"`           |
+| `u8"..."`  | `const char8_t[]` (C++20) | `u8"abc"`          |
+| `u"..."`   | `const char16_t[]`        | `u"abc"`           |
+| `U"..."`   | `const char32_t[]`        | `U"abc"`           |
+| `R"(...)"` | raw string literal        | `R"(Line\nBreak)"` |
+
+En résumé :
+Un string literal est :
+- écrit entre " guillemets
+- constante et immuable
+- stockée dans .rodata
+- souvent convertie en const char*
+#### string et string literal
+```cpp
+std::string mon_string = "hello";
+```
+
+Étape 1 : "hello" est un string literal
+- Type : const char[6] (5 lettres + \0)
+- Stocké dans le segment .rodata du binaire
+- C’est une valeur constante connue à la compilation
+
+Étape 2 : Initialisation de std::string
+Le constructeur suivant est appelé :
+```cpp
+std::string(const char* s);
+```
+Donc :
+- "hello" est converti implicitement en const char*
+- Le constructeur de std::string va :
+    - copier les caractères dans un buffer dynamique (sur le heap)
+    - stocker le pointeur, la taille, la capacité, etc., dans l’objet mon_string (sur la stack)
+
+Résumé mémoire :
+| Élément                 | Localisation           | Contenu                                 |
+| ----------------------- | ---------------------- | --------------------------------------- |
+| `"hello"`               | `.rodata`              | `'h' 'e' 'l' 'l' 'o' '\0'`              |
+| `mon_string` (objet)    | Stack                  | structure avec pointeur/taille/capacité |
+| Buffer de `std::string` | Heap (alloc dynamique) | `'h' 'e' 'l' 'l' 'o'`                   |
+
+### Conversion implicite : const char[N] → const char*
+```cpp
+const char* p = "hello";
+```
+- "hello" est de type const char[6]
+- Mai il est automatiquement converti en type const char*
+
+Pourquoi ?
+Lorsqu'un tableau est utilisé dans une expression, il est automatiquement converti en un pointeur vers sont premier élément (sauf dans quelques cas particuliers, comme sizeof, decltype ou en tant que paramètre référence à un tableau)
+```cpp
+const char arr[6] = "hello";
+const char* p = arr;      // conversion implicite vers &arr[0]
+```
+- arr n'est pas un pointeur, mais peut être converti en const char*
+- Donc "hello" (de type const char[6])se transforme en const char* automatiquement.
+```cpp
+const char* s = "hello";
+```
+Ce qui se passe:
+- "hello" -> type réel const char[6]
+- conversion explicite &"hello"[0]
+- affectation s pointer vers 'h'
+
+### utres représentations d’un tableau que []
+| Syntaxe      | Signification              |
+| ------------ | -------------------------- |
+| `arr[i]`     | élément `i` du tableau     |
+| `*(arr + i)` | idem                       |
+| `arr`        | adresse du premier élément |
+| `&arr[i]`    | adresse du `i`-ème élément |
+
+Ce qu’il faut retenir :
+| Expression   | Ce qu’elle fait                                                            |
+| ------------ | -------------------------------------------------------------------------- |
+| `arr[i]`     | accède à `*(arr + i)`                                                      |
+| `*(arr + i)` | identique, mais moins lisible                                              |
+| `arr[i][j]`  | accède à `*(*(arr + i) + j)`                                               |
+| Attention    | `arr + 1` dépend du **type du pointeur** (pas juste d'un décalage d'1 int) |
+
+
+#### Tableau C-style : (deduction de la taille à la compilation)
+```cpp
+int my_array[] = {42, 100, 200};
+```
+- Type : int[3]
+- Taille connue à la compilation
+- Allocation sur la stack
+
+std::array (nécessite <array>) :
+```cpp
+std::array<int, 3> my_array = {42, 100, 200};
+```
+- Type : std::array<int, 3>
+- Allocation également sur la stack
+- Taille connue et fixe à la compilation
+
+#### Difference
+```cpp
+int my_array[] = {1,2,3};
+```
+ - La taille est déduite automatiquement par le compilateur
+ - Avantage : plus concis, surtout pour de longues initialisations
+```cpp
+int my_array[3] = {1,2,3};
+```
+- La taille est spécifiée explicitement
+- Le compilateur vérifie que le nombre d’éléments dans l’accolade ne dépasse pas 3
+- Tu peux mettre moins d’éléments, ils seront alors initialisés à zéro :
+```cpp
+int my_array[3] = {42};  // devient : {42, 0, 0}
+```
