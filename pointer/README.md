@@ -485,3 +485,7 @@ int my_array[3] = {1,2,3};
 ```cpp
 int my_array[3] = {42};  // devient : {42, 0, 0}
 ```
+
+### std::unique_ptr
+
+### std::shared_ptr
