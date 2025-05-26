@@ -114,3 +114,21 @@ Compile
 g++-11 function/template_spacialization.cpp -o build/template_spacialization -std=c++20
 ./build/template_spacialization
 ```
+### Fonction avec ou sans nom pour l'argument
+La déclaration dans l'en-tête (ou signature) :
+```cpp
+static void on_media_unprepared(GstRTSPMedia* media, gpointer user_data);
+```
+Cela déclare une fonction avec ses types d’arguments, y compris ici GstRTSPMedia* media.
+Tu donnes un nom à l’argument, ce qui est utile pour :
+- la lisibilité
+- les cas où tu utiliseras ce paramètre dans le corps de la fonction
+La définition avec un argument non utilisé :
+```cpp
+void RtspStream::on_media_unprepared(GstRTSPMedia*, gpointer user_data)
+```
+Ici, on définit la fonction, mais on omet le nom du premier paramètre (media) car on ne l’utilise pas dans le corps de la fonction.
+Cela sert à éviter un warning du compilateur comme :
+```bash
+warning: unused parameter ‘media’ [-Wunused-parameter]
+```
