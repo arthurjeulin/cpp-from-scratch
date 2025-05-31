@@ -115,3 +115,44 @@ Each expression has some non-eference type and each expression belons exactly on
 auto ptr_1 = std::make_unique<int[]>(10);
 auto ptr_2 = std::move(ptr_2);
 ```
+
+### Operator overloading
+Customizes the C++ operators for operands of user-defined type
+Use operator with our class. Doesn't work by default because the compiler doesn't know what our class means. 
+- Like Point p; => p1 += p2; ?
+
+Syntax: 
+- Operator functions are functions with special function names
+  - operator op (1)
+  - operator new or operator new[] (2)
+  - operator delete or operator delete[] (3)
+  - operator co_await (4)
+
+(1) An overloaded punctuation operator
+(2) An allocation function
+(3) A deallocation function
+(4) An overloaded co_await operator for use in co_await expressions 
+
+When an operator appears in an expression, and at least one of its operants has a class type or an enumaration type, then overload resolution is used to determine the user-defined function to be called among all the functio whose signatures match the following: 
+## Table de surcharge des opérateurs en C++
+
+| Expression     | En tant que fonction membre       | En tant que fonction non-membre     | Exemple                                                                 |
+|----------------|-----------------------------------|--------------------------------------|-------------------------------------------------------------------------|
+| `@a`           | `(a).operator@()`                 | `operator@(a)`                       | `!std::cin` appelle `std::cin.operator!()`                             |
+| `a@b`          | `(a).operator@(b)`                | `operator@(a, b)`                    | `std::cout << 42` appelle `std::cout.operator<<(42)`                  |
+| `a = b`        | `(a).operator=(b)`                | ❌ ne peut pas être non-membre        | `std::string s; s = "abc"` appelle `s.operator=("abc")`                |
+| `a(b...)`      | `(a).operator()(b...)`            | ❌ ne peut pas être non-membre        | `std::random_device r; auto n = r();` appelle `r.operator()()`        |
+| `a`            |
+| `a->`          | `(a).operator->()`                | ❌ ne peut pas être non-membre        | `std::unique_ptr<S> p; p->bar()` appelle `p.operator->()`              |
+| `a@` (postfix) | `(a).operator@(0)`                | `operator@(a, 0)`                    | `std::vector<int>::iterator i; i++` appelle `i.operator++(0)`         |
+
+> Dans ce tableau, `@` est un symbole générique représentant :
+> - tous les opérateurs préfixes dans `@a`
+> - tous les opérateurs postfixes sauf `->` dans `a@`
+> - tous les opérateurs infixes sauf `=` dans `a@b`
+
+---
+
+### Remarques
+
+- Les opérateurs de comparaison `==`, `!=`, `<`, `>`, `<=`, `>=`, `<=>` sont également résolus via les **candidats réécrits** : `operator==` ou `operator<=>` *(depuis C++20)*.
