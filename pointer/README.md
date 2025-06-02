@@ -7,7 +7,62 @@ Compile and Run
 ```bash
 g++ pointer/pointer.cpp -o build/pointer && build/pointer
 ```
+### What is Dynamic Memory Allocation?
 
+Dynamic memory allocation is the process of allocating memory at the runtime of a program.
+It allows programmers to reserve some memory during the program's execution, use it as required and then free it to use it for some other purpose. This memory is allocated in the Heap memory of the program instead of the stack memory. It is very useful in cases like:
+- When you are not sure about the size of the array you need.
+- Implementing data structures such as linked list, trees, etc.
+- In complex programs that require efficient memory management.
+Dynamic memory allocation in C++ and deallocation is achieved by using two specialized operators: new and delete
+#### new Operator
+The new operator requests for the allocation of the block of memory of the given size of type on the Free Store (name for the part of heap memory available for new operator). If sufficient memory is available, a new operator initializes the memory to the default value according to its type and returns the address to this newly allocated memory.
+#### Syntax
+```cpp
+new data_type;
+```
+In the above statement, a memory block that can store a single value fo givend at_type is reserved in the headp and the address is returned. this address should be stored in te pointer variable of the same type.
+#### Example
+```cpp
+int *nptr = new int;
+```
+We allocated the memory for a single integer using new and stored its address in the integer pointer nptr. We can also initialize the allocated memory by providing an initial value:
+```cpp
+int *nptr = new int(10);
+```
+#### Allocated Block of Memory (Array)
+A new operator is also used to dynamically allcoate a block (an arary) of memory of given datra type as shown below:
+```cpp
+new data_type[n];
+```
+This statement dynamically allcoates memory for n elements of given data_type. Arrays can also be initialized during allocation
+```cpp
+int *ptr = new int[3]{1,2,3};
+```
+#### delete Operator
+delete operator is used to release dynamically allocated memory. It deallocates memory tha was previously allocated with new
+##### Syntax
+```cpp
+delete ptr;
+```
+where ptr is the pointer to the dynamically allocated memory.
+To free the dynamically allocated array pointed by pointer variable , used the follwoing form delete:
+```cpp
+delete[] arr;
+```
+#### Errrors Associated with Dynamic Memory
+1. Memory Leaks
+  Memory leak is a situation where the memory allocated for a particular task remains allocated even after it is no longer needed. Moreover, if the address to the memory is lost, then it will remain allocated till the program runs.
+2. Dangling Pointers
+  Dangling pointers are created when the memor pointed by the pointer is accessed after it is deallocated, leading to undefined behaviour (crashes, garbage data,etc).
+  Solution: Initialize pointers with nullptr and assign nullptr again when deallocated
+3. Double deletion
+  When delete is called on the same memory twice, leading to crash or corrupted program.
+  Solution: assign nullptr to the memory pointer when deallocated
+4. Mixing new/delete with malloc() / free()
+5. Placement new
+   Placement new is a variant of new operator. Normal new oeprator both allocates memory and constructs an object in that memory. On the other han, the placement new seperates these actions. It allows the programmer to pass a pre-allocated memory block and construct an object in that specific memory.
+   
 ## Dynamic Allocation
 Reserver memory at runtime. We already saw an example with the template library container like std::vector.
 
@@ -50,12 +105,12 @@ Tableau de caractères avec chaîne C (string)
 char str[] = "Hello";
 ```
 équivalent à: 
-- Terminé par \0 (null caracter) automatiquement
+- Terminé par \0 (null character) automatiquement
 ```cpp
 char str[] = {'H', 'e', 'l', 'l', 'o', '\0'};
 ```
 
-Attention char str[] est un tableau tandis que char* str est un pointer vers une chaîne de caracter.
+Attention char str[] est un tableau tandis que char* str est un pointer vers une chaîne de character.
 
 En C++, lorsqu’on exécute un programme depuis le terminal avec des arguments, ceux-ci sont transmis au programme via les paramètres argc et argv de la fonction main() :
 1. Définition de argc et argv :
@@ -489,3 +544,24 @@ int my_array[3] = {42};  // devient : {42, 0, 0}
 ### std::unique_ptr
 
 ### std::shared_ptr
+
+### What is the Difference Between a pointer and a reference in C++ ?
+
+```cpp
+/**
+ * Create a integer pointer
+ */
+int* ptr = nullptr; // 0x0 zero
+int var = 7;        // &var = 0xA address
+int foo = 21;       // &foo = 0xB address
+ptr = &var;         // ptr = 0xA *ptr = 7
+ptr = &foo;         // ptr = 0xB *ptr = 21
+int& ref = var;     // give a new way to call the memory location (0xA) that hold 7
+// A reference cannot by moved to another reference.
+// A reference cannot by null
+// A reference is asigned once 
+```
+Implémentation en mémoire
+Dans l’implémentation machine (dépend du compilateur), une référence est souvent traitée comme un pointeur constant caché :
+- Elle est généralement compilée comme un pointeur passé en registre ou sur la pile, mais sans permettre la réassignation.
+- Elle ne peut jamais être null ni rebinder vers une autre variable après l’initialisation.
