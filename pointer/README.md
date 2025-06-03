@@ -565,3 +565,175 @@ Implémentation en mémoire
 Dans l’implémentation machine (dépend du compilateur), une référence est souvent traitée comme un pointeur constant caché :
 - Elle est généralement compilée comme un pointeur passé en registre ou sur la pile, mais sans permettre la réassignation.
 - Elle ne peut jamais être null ni rebinder vers une autre variable après l’initialisation.
+
+### Dynamic Memory Allocation GeekForGeek video
+```bash
++-----------------------------+ ← Adresses basses
+|     Code (text segment)     | → fonctions, instructions
+|-----------------------------|
+|     Data segment            |
+|     - .data   (initialized) | → variables globales/static avec valeur
+|     - .bss    (uninitialized) → globales/static sans valeur initiale
+|-----------------------------|
+|     Heap                    | ← `new`, `malloc`, etc.
+|-----------------------------|
+|     Stack (croît vers le bas)
+|-----------------------------+ ← Adresses hautes
+
+# Autre schema
+Mémoire haute
+───────────────
+|     Stack     | ← variables locales
+|──────────────|
+|     Heap      | ← malloc/new
+|──────────────|
+|    .bss       | ← global/static non initialisées
+|    .data      | ← global/static initialisées
+|    .rodata    | ← const, string literals
+|    .text      | ← instructions (code)
+Mémoire basse
+
+```
+Ou sont scokéées les variables
+| Type de donnée                           | Emplacement           | Exemple              |
+| ---------------------------------------- | --------------------- | -------------------- |
+| Variable globale initialisée             | `.data`               | `int g = 5;`         |
+| Variable globale non initialisée         | `.bss`                | `int g;`             |
+| Variable `static` locale initialisée     | `.data`               | `static int x = 10;` |
+| Variable `static` locale non initialisée | `.bss`                | `static int y;`      |
+| Constante globale `const` ou `constexpr` | `.rodata` (read-only) | `const int z = 42;`  |
+| Code de fonctions                        | `.text`               | `void f() {}`        |
+
+.bss signifie "Block Started by Symbol". C’est une section du segment de données destinée à contenir les variables globales ou static non initialisées.
+Caractéristiques :
+- Elle ne prend pas d’espace dans le fichier binaire (juste une indication de taille).
+- Elle est remplie de zéros automatiquement à l’exécution.
+- Cela permet de réduire la taille du binaire : pas besoin de stocker des zéros explicitement.
+#### Segments mémoire classiques dans un exécutable ELF (Linux)
+| Segment / Section                | Rôle                                                            | Contenu typique                               |
+| -------------------------------- | --------------------------------------------------------------- | --------------------------------------------- |
+| `.text`                          | Code                                                            | Instructions machine des fonctions            |
+| `.rodata`                        | Read-only Data                                                  | `const char*`, `constexpr`, `string literals` |
+| `.data`                          | Données initialisées                                            | Variables globales/static initialisées        |
+| `.bss`                           | Données non initialisées                                        | Globales/static non initialisées              |
+| `.init_array`                    | Constructeurs (avant `main()`)                                  | Appelle fonctions avant `main()`              |
+| `.fini_array`                    | Destructeurs (après `main()`)                                   | Appelle fonctions après `main()`              |
+| `.plt`, `.got`                   | Tables d’accès aux fonctions dynamiques (librairies dynamiques) |                                               |
+| `.eh_frame`, `.gcc_except_table` | Données pour le support d’exception                             |                                               |
+| `.symtab`, `.strtab`             | Table des symboles et noms (utile avec `nm`)                    |                                               |
+| `.comment`, `.note`              | Infos de debug/compilation                                      |                                               |
+| `.stack` (virtuel)               | Stack (gérée par le système)                                    |                                               |
+| `heap` (virtuel)                 | Heap (gérée dynamiquement via `malloc`/`new`)                   |                                               |
+
+
+```cpp
+#include <iostream>
+
+int global_var = 42;           // .data
+int global_uninit;             // .bss
+
+void func() {
+    static int counter = 0;    // .data
+    static int tmp;            // .bss
+    counter++;
+    std::cout << counter << std::endl;
+}
+
+int main() {
+    const int const_val = 123; // .rodata
+    int local_var = 10;        // stack
+    func();
+    return 0;
+}
+```
+There is three dypes of memory allocation
+- static => segment de donnée
+- automatics => stack
+- dynamic => heap
+La pile d'exécution (stack)
+- La stack est une zone de mémoire utilisée pour gérer les appels de fonctions dans un programme.
+- Chaque fois qu'une fonction est appelée, un block de donnée appelé activation record ou stack frame est empilé sur la pile.
+- Quand la fonction se termine son bloc est dépilé
+Fonctionnement de la stack à l'exécution
+```cpp
+void f(int x)
+{
+  int y = x + 1;
+}
+int main()
+{
+  int a = 10;
+  f(a);
+  return 0;
+}
+```
+Étapes dans la pile :
+- main() est appelée :
+    Un stack frame est créé pour main (contient a, return address, etc.).
+- f(a) est appelée :
+    Nouveau stack frame pour f est empilé (contient x, y, return address).
+À la fin de f :
+    Le stack frame de f est retiré (automatiquement).
+Retour dans main.
+Activation Record (Stack Frame)
+- Un activation record (ou enregistrement d'activation) est la structure utlisé pour stocker toutes les informations nécessiares à l'exécution d'une fonction.
+
+
+```cpp
+int e;
+void fun()
+{
+  static int a;
+  int b,c;
+}
+int main()
+{
+  int d;
+  fun();
+  int* ptr = new int[5];
+  return 0;
+}
+```
+A cpp program has section
+- text: where the executable code is store
+- data: 
+    - static variable
+      static variable stays for the lifetime of the program.
+    - global variable
+- heap: pull of memory where we can allocate and desallocate memory
+    - 
+- stack: used to stored function activation record
+    - store local variable of the function
+    - stack:
+      main => d
+        fun() => b,c
+```cpp
+int main()
+{
+  static int a;
+  int b,c;
+  // Allocate an array of 5 integer
+  int* ptr = new int[5]; 
+  // allocate on the heap
+  // ptr store the address of the array of integer
+  // ptr = 0x200 
+  // ptr is the address of the first element of the array
+  //
+  *(ptr + 2) = 10;
+  // la variable pointer qui store l'address du tableau est une
+  // variable dans la stack
+  std::cout << "array[2] = "<<*(ptr + 2) << std::endl;
+  // deallocate the memory
+  delete[] ptr;
+  ptr = nullptr;
+  // To avoid Dangling pointer: access to a pointer after deallocation
+  //nullptr refers that the pointer is pointing nowhere
+  return;
+}
+```
+NULL était une macro qui retournait 0 mais créait de l'ambiguité.
+nullptr est un type std::nullptr_t
+
+void* => 
+- is a special pointer type which doesn't specify the type of the pointer.
+- used to typecast the pointer, when we don't know the type of memory in advance.
