@@ -1,3 +1,19 @@
+## Idiome fondamental en C++
+Un idiome C++ fondament est une forme de code reconnue, typique et recommandé pour exprimer une idée récurrente d'une manière:
+- sûre
+- efficace
+-optimisée,
+compatible avec les conventions du langage
+#### Example d'idiomes fondamentaux en C++
+| Idiome                 | Ce que ça exprime                                                          |
+| ---------------------- | -------------------------------------------------------------------------- |
+| **RAII**               | Gérer des ressources (fichier, mutex, etc.) via la durée de vie d'un objet |
+| **Rule of 5 / 0**      | Gérer proprement les constructeurs et opérateurs spéciaux                  |
+| **SFINAE / Concepts**  | Contraindre des templates à certains types valides                         |
+| **Perfect Forwarding** | Transmettre des arguments **sans perte** (ex: `Args&&... args`)            |
+| **CRTP**               | Simuler du polymorphisme sans coût virtuel                                 |
+| **pImpl**              | Séparer l’interface et l’implémentation (cacher les détails)               |
+
 ## Containers
 ### span
 ```cpp
@@ -94,3 +110,207 @@ Conclusion
 ### push_back vs emplace_back
 - std::vector is one of the most used container because it is really pratical.
 - now let learn how to use well std::vector
+#### emplace_back explanation
+Example cpp reference
+```cpp
+#include <vector>
+#include <cassert>
+#include <iostream>
+#include <string>
+ 
+struct President
+{
+  std::string name;
+  std::string country;
+  int year;
+
+  President(std::string p_name, std::string p_country, int p_year)
+      : name(std::move(p_name)), country(std::move(p_country)), year(p_year)
+  {
+      std::cout << "I am being constructed.\n";
+  }
+
+  President(President&& other)
+      : name(std::move(other.name)), country(std::move(other.country)), year(other.year)
+  {
+      std::cout << "I am being moved.\n";
+  }
+
+  President& operator=(const President& other) = default;
+};
+ 
+int main()
+{
+  std::vector<President> elections;
+  std::cout << "emplace_back:\n";
+  auto& ref = elections.emplace_back("Nelson Mandela", "South Africa", 1994);
+  assert(ref.year == 1994 && "uses a reference to the created object (C++17)");
+
+  std::vector<President> reElections;
+  std::cout << "\npush_back:\n";
+  reElections.push_back(President("Franklin Delano Roosevelt", "the USA", 1936));
+
+  std::cout << "\nContents:\n";
+  for (const President& president: elections)
+      std::cout << president.name << " was elected president of "
+                << president.country << " in " << president.year << ".\n";
+
+  for (const President& president: reElections)
+      std::cout << president.name << " was re-elected president of "
+                << president.country << " in " << president.year << ".\n";
+}
+```
+Output:
+```bash
+emplace_back:
+I am being constructed.
+ 
+push_back:
+I am being constructed.
+I am being moved.
+ 
+Contents:
+Nelson Mandela was elected president of South Africa in 1994.
+Franklin Delano Roosevelt was re-elected president of the USA in 1936.
+```
+importante nuance de emplace qui à deux surcharges possibles:
+```cpp
+template< class... Args >
+void emplace_back( Args&&... args ); (until C++17)
+
+template< class... Args >
+reference emplace_back( Args&&... args ); (since C++17 (Retourne T&)) (constexpr since C++20 (Retourne T&, et constexpr)
+)
+```
+Avant C++17: emplace_back ne retournait rien
+Pour accéder à l'object il fallait:
+```cpp
+vec.emplace_back();
+President& ref = vec.back(); // accès manuel
+```
+Depuis C++ 17: retourn ference (c'est à dire T&)
+A partir de C++17, le standard a modifié emplace_back pour qu'il retourne une référence à l'objet construit dans le container.
+- emplace_back depuis C++17 retourne un reference de l'object crée.
+Depuis C++20: constexpr ajouté:
+- emplace_back peut-être applé à la compilation si toutes les ocnditions sont réunies. 
+```cpp
+std::vector<President> elections;
+auto& ref = elections.emplace_back("Nelson Mandela", "South Africa", 1994);
+assert(ref.year == 1994 && "uses a reference to the created object (C++17)");
+```
+### Pourquoi on ne std::move pas forcement un type primitif comme int ?
+- int est un type primitif, copiable à coût constant
+- En C++, les types primitifs (comme int, double, bool) ne peuvent pas être "déplacés", car ils ne possèdent pas de move constructor.
+- Il n'y a pas de différence entre "copier" et déplacer" un in: c'et toujours une simple copie binaire.
+```cpp
+year = p_year;          // équivalent à std::move(p_year);
+year = other.year;      // idem
+```
+- Il est inutile et non idiomatique d'écrire std::move(p_year) pour un int
+### Explication de assert()
+Définition
+```cpp
+assert(expression);
+```
+- Vérifie que l'expression est vraie à l'exécution (pas à la compilation)
+- Si expression == false, le programme:
+  - s'arrête immédiatement
+  - avec un message d'erreur contenant l'expression
+```cpp
+assert(x==42 && "x should be 42 here");
+```
+Si x!=42 message d'erreur:
+```cpp
+Assertion failed: x == 42 && "x should be 42 here", file main.cpp, line XX
+```
+### template<class... Args> ?
+C'est un idome fondamental du C++ moderne: les "parameter packs' utilisés dans les templates variadiques.
+Un template variadique:
+```cpp
+template< class... Args >
+```
+- Cela signifie: "Args est une liste de types (0 ou plus)"
+- Args - représente plusieurs types, pas un seul
+Exemple d'instanciation possible de emplace_back:
+```cpp
+emplace_back(int, std::string,double)
+```
+Dans ce cas:
+- Args devient: int, std::string,double
+Que signifie Args&&... args dans les paramètres
+```cpp
+emplace_back(Args&&... args)
+```
+Détails
+- Args&&...: correspond à une liste de références de rvalue universelles, une pour chaque type de Args.
+- args...: ce sont les noms des arguments correspondants
+Args&&... args = listes d'arguments "perfect forwarded" (Mécanismes de transfert parfait en C++11)
+Exemple simple
+```cpp
+template<typename... Args>
+void log_all(Args&&... args) {
+    (std::cout << ... << args); // fold expression
+}
+```
+Appel:
+```cpp
+log_allo("ID= ",42,", x= ", 3.14);
+```
+- Args... = const char*, int, const char*, double
+- args... = ID = ", 42, ", x = ", 3.14
+Différence entre Args et args (et ...)
+| Élément                       | Ce que c’est                                           | Représente                              |
+| ----------------------------- | ------------------------------------------------------ | --------------------------------------- |
+| `Args...`                     | **liste de types** (template)                          | Ex : `int, std::string, double`         |
+| `args...`                     | **liste d'arguments** (paramètres)                     | Ex : `42, "hello", 3.14`                |
+| `Args&&...`                   | liste de **rvalue/lvalue references**                  | rend possible le **perfect forwarding** |
+| `std::forward<Args>(args)...` | **Dépliage + preservation** du type de chaque argument | Core du perfect forwarding              |
+### Example avec une fonction template variadique avec perfect forwarding
+Définition générique:
+```cpp
+template<typename... Args>
+void func(Args&&... args)
+{
+  some_function(std::forward<Args>(args)...);
+}
+```
+Exemple d'appel utilisateur
+```cpp
+std::string name = "Arthur";
+int age = 30;
+func(name,42,std::move(age));
+```
+Ce que voit le compilateur
+| Élément                       | Contenu déduit                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `Args...`                     | `std::string&`, `int`, `int&&`                                                  |
+| `args...`                     | `name`, `42`, `std::move(age)`                                                  |
+| `Args&&...`                   | `std::string& &&`, `int&&`, `int&& &&` → simplifiés                             |
+| `std::forward<Args>(args)...` | `std::forward<std::string&>(name)`, `42`, `std::forward<int&&>(std::move(age))` |
+
+std::forward<Args>(args)... fait une expansion "1 par 1" qui préserve :
+- les & si c'était des lvalues,
+- les && si c'était des rvalues.
+```cpp
+// Expansion 1 par 1 avec Args = (std::string&, int, int&&)
+
+some_function(
+    std::forward<std::string&>(name),  // reste une lvalue
+    42,                                // simple value
+    std::forward<int&&>(std::move(age)) // reste une rvalue
+);
+```
+Résultat : perfect forwarding
+| Argument original | Type réel dans `Args` | Après `std::forward<Args>(args)` |
+| ----------------- | --------------------- | -------------------------------- |
+| `name`            | `std::string&`        | `std::string&`                   |
+| `42`              | `int`                 | `int`                            |
+| `std::move(age)`  | `int&&`               | `int&&`                          |
+Le comportement de chaque argument est parfaitement respecté sans copie ou conversion inutile.
+| Élément                       | Rôle                                                       |
+| ----------------------------- | ---------------------------------------------------------- |
+| `Args...`                     | Paramètre pack de **types**                                |
+| `args...`                     | Paramètre pack de **valeurs**                              |
+| `Args&&... args`              | Permet d’accepter n’importe quoi **avec sa valeur exacte** |
+| `std::forward<Args>(args)...` | Fait le **forwarding parfait** avec expansion 1 par 1      |
+| `...`                         | Syntaxe de **dépliage du pack** (parameter pack expansion) |
