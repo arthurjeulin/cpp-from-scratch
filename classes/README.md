@@ -389,9 +389,9 @@ consteval exige que l’appel de la fonction soit fait à la compilation, tandis
 
 | Attribut                 | `constexpr`                          | `consteval`                                     |
 | ------------------------ | ------------------------------------ | ----------------------------------------------- |
-| Appel à l'exécution ?    | ✅ Oui si pas en contexte `constexpr` | ❌ Interdit — compile error                      |
-| Appel à la compilation ? | ✅ Oui                                | ✅ Obligatoire                                   |
-| Souplesse                | ✅ Plus souple (polyvalent)           | ❌ Plus strict (compiler-only)                   |
+| Appel à l'exécution ?    | ✅ Oui si pas en contexte `constexpr` | ❌ Interdit — compile error                    |
+| Appel à la compilation ? | ✅ Oui                                | ✅ Obligatoire                                 |
+| Souplesse                | ✅ Plus souple (polyvalent)           | ❌ Plus strict (compiler-only)                 |
 | Usage typique            | fonctions optimisables               | fonctions **réservées à des calculs constants** |
 | C++ version              | Depuis C++11 (amélioré C++14, C++20) | Introduit en C++20                              |
 
@@ -481,7 +481,7 @@ Faut-il préférer constexpr ou const ?
 Donc ici : constexpr est parfaitement adapté, car :
 - la valeur est connue au moment de la compilation,
 - elle peut être utilisée dans des expressions static_assert, std::array, etc.
-##### Exemple: Cacul
+##### Exemple: calcul
 ```cpp
 #include <iostream>
 

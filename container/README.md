@@ -1,5 +1,5 @@
-## Container
-### Span
+## Containers
+### span
 ```cpp
 template<
   class T,
@@ -90,3 +90,7 @@ Conclusion
 - C’est crucial pour éviter les conflits de noms dans les namespaces ou les classes.
 - En ::operator new, c’est pour forcer l’utilisation de la version standard du C++ (non surchargée).
 - En ::testing::Test, c’est pour clarifier qu’on veut la classe Test du namespace testing global, utile quand on est dans d'autres scopes.
+
+### push_back vs emplace_back
+- std::vector is one of the most used container because it is really pratical.
+- now let learn how to use well std::vector
