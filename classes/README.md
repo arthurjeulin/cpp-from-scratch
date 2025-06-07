@@ -579,3 +579,10 @@ int main()
 | `constexpr class`         | objets entiers éligibles au `static_assert`, etc. |
 | `constexpr function`      | fonctions évaluées à la compilation               |
 | `static_assert` + logique | sécurité logique à la compilation                 |
+### Inheritance
+
+### Polymorphism
+Polymorphism: 
+- in the context of inheritance is treat object of different type as the same type. 
+- We can treat different derived class as their base class.
+- Usefull with container to hold different objects from the same base class.
