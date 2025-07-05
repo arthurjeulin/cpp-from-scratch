@@ -586,3 +586,4 @@ Polymorphism:
 - in the context of inheritance is treat object of different type as the same type. 
 - We can treat different derived class as their base class.
 - Usefull with container to hold different objects from the same base class.
+### Virtual function specifier
