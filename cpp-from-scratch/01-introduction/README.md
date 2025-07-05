@@ -295,3 +295,9 @@ Compiler
 g++ introduction/pass_by_references.cpp -o build/pass_by_references &&
 ./build/pass_by_references
 ```
+
+
+### Qu’est-ce que [[fallthrough]] ?
+  Attribut C++ 17.
+  Signale explicitement qu’on veut laisser l’exécution tomber (« fall through ») dans le case suivant sans break.
+  Évite que le compilateur n’émette un warning (« implicit fallthrough »).
